@@ -2,7 +2,7 @@ import { DummyERAttribute, ERAttribute, type ERAttributeData } from './attribute
 import type { Entity, MouseData } from './entity';
 import { DummyEREntity, EREntity, type EREntityData } from './erEntity';
 import { DummyERLabel, ERLabel, type ERLabelData } from './label';
-import { ERLine } from './line';
+import { ERLine, RecursionSide } from './line';
 import { Point } from './point';
 import { DummyERRelationship, ERRelationship, type ERRelationshipData } from './relationship';
 import { RenderEngine } from './renderEngine';
@@ -194,7 +194,7 @@ export class Engine {
 
 			const data = await getData();
 
-			const entity = new ERAttribute(data.label, data.key, data.partial, data.multiValued);
+			const entity = new ERAttribute(data.label, data.key, data.partial, data.multiValued, data.derived);
 			entity.position = pos.clone();
 
 			this.add(entity, 1);
@@ -273,22 +273,25 @@ export class Engine {
 			this.canvas.style.cursor = 'unset';
 		}
 
-		const relationshipLinks: [ERRelationship, EREntity][] = [];
-		const recursiveRelationships: Set<ERRelationship> = new Set();
+		const relationshipLinks: [ERRelationship, EREntity, ERLine][] = [];
 		this.layers.forEach((layer) => {
 			layer.forEach((entity) => {
 				if (entity instanceof ERLine) {
 					if (entity.from instanceof ERRelationship && entity.to instanceof EREntity) {
-						if (relationshipLinks.find(([r, e]) => entity.from === r && entity.to === e)) {
-							recursiveRelationships.add(entity.from);
+						let relationship;
+						if ((relationship = relationshipLinks.find(([r, e]) => entity.from === r && entity.to === e))) {
+							relationship[2].recursionState = RecursionSide.LEFT;
+							entity.recursionState = RecursionSide.RIGHT;
 						} else {
-							relationshipLinks.push([entity.from, entity.to]);
+							relationshipLinks.push([entity.from, entity.to, entity]);
 						}
 					} else if (entity.to instanceof ERRelationship && entity.from instanceof EREntity) {
-						if (relationshipLinks.find(([r, e]) => entity.to === r && entity.from === e)) {
-							recursiveRelationships.add(entity.to);
+						let relationship;
+						if ((relationship = relationshipLinks.find(([r, e]) => entity.to === r && entity.from === e))) {
+							relationship[2].recursionState = RecursionSide.LEFT;
+							entity.recursionState = RecursionSide.RIGHT;
 						} else {
-							relationshipLinks.push([entity.to, entity.from]);
+							relationshipLinks.push([entity.to, entity.from, entity]);
 						}
 					}
 				}
@@ -301,14 +304,6 @@ export class Engine {
 					selected: this._selectedEntity === entity,
 					mouse: { down: this._mouseDown, delta: this._mouseDelta, position: this._mousePos?.clone() || null } as MouseData
 				});
-
-				if (entity instanceof ERRelationship) {
-					if (!entity.recursive && recursiveRelationships.has(entity)) {
-						entity.recursive = true;
-					} else if (entity.recursive && !recursiveRelationships.has(entity)) {
-						entity.recursive = false;
-					}
-				}
 			});
 		});
 

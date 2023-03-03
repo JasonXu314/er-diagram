@@ -2,6 +2,12 @@ import { Point } from './point';
 
 interface TextStyles {
 	underline: boolean;
+	underlineStyle: string | CanvasGradient | CanvasPattern;
+	underlineDashed: boolean;
+}
+
+interface ShapeStyles {
+	dashed: boolean;
 }
 
 export class RenderEngine {
@@ -85,7 +91,9 @@ export class RenderEngine {
 		const [x, y] = this.norm.add(center.invert('y')).add(new Point(0, 4));
 
 		const defaultStyles: TextStyles = {
-			underline: false
+			underline: false,
+			underlineStyle: 'black',
+			underlineDashed: false
 		};
 		const sx = { ...defaultStyles, ...styles };
 
@@ -96,23 +104,40 @@ export class RenderEngine {
 		if (sx.underline) {
 			const metrics = this.context.measureText(text);
 
-			this.context.strokeStyle = 'black';
+			this.context.strokeStyle = sx.underlineStyle;
+			if (sx.underlineDashed) {
+				this.context.setLineDash([3, 2]);
+			}
 
 			this.context.beginPath();
-			this.context.moveTo(x - metrics.actualBoundingBoxLeft, y + metrics.fontBoundingBoxDescent);
-			this.context.lineTo(x + metrics.actualBoundingBoxRight, y + metrics.fontBoundingBoxDescent);
+			this.context.moveTo(x - metrics.actualBoundingBoxLeft, y + (metrics.fontBoundingBoxDescent ?? metrics.actualBoundingBoxDescent));
+			this.context.lineTo(x + metrics.actualBoundingBoxRight, y + (metrics.fontBoundingBoxDescent ?? metrics.actualBoundingBoxDescent));
 			this.context.stroke();
+
+			this.context.strokeStyle = 'black';
+			this.context.setLineDash([]);
 		}
 	}
 
-	public ellipse(center: Point, xRadius: number, yRadius: number): void {
+	public ellipse(center: Point, xRadius: number, yRadius: number, styles: Partial<ShapeStyles> = {}): void {
 		const [x, y] = this.spaceToCanvas(center);
 
+		const defaultStyles: ShapeStyles = {
+			dashed: false
+		};
+		const sx = { ...defaultStyles, ...styles };
+
 		this.context.strokeStyle = 'black';
+		if (sx.dashed) {
+			this.context.setLineDash([3, 2]);
+		}
 
 		this.context.beginPath();
 		this.context.ellipse(x, y, xRadius, yRadius, 0, 0, 2 * Math.PI);
 		this.context.stroke();
+
+		this.context.strokeStyle = 'black';
+		this.context.setLineDash([]);
 	}
 
 	public fillEllipse(center: Point, xRadius: number, yRadius: number, fillStyle: string | CanvasGradient): void {

@@ -27,8 +27,6 @@ export class DummyERRelationship extends Entity {
 }
 
 export class ERRelationship extends Entity {
-	public recursive = false;
-
 	constructor(public label: string, public identifying: boolean, private readonly renderEngine: RenderEngine) {
 		super();
 	}

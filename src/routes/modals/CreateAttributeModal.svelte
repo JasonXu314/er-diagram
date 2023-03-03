@@ -9,6 +9,7 @@
 		key: boolean = false,
 		partial: boolean = false,
 		multiValued: boolean = false,
+		derived: boolean = false,
 		element: InputElementType;
 
 	$: {
@@ -37,13 +38,15 @@
 			<Checkbox label="Partial Key?" bind:checked={partial} />
 		{/if}
 		<Checkbox label="Multi-Valued?" bind:checked={multiValued} />
+		<Checkbox label="Derived Attribute?" bind:checked={derived} />
 		<Button
 			on:click={() => {
-				dispatcher('submit', { label, key, partial, multiValued });
+				dispatcher('submit', { label, key, partial, multiValued, derived });
 				label = '';
 				key = false;
 				partial = false;
 				multiValued = false;
+				derived = false;
 			}}>Ok</Button
 		>
 	</Stack>

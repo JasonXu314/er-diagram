@@ -7,6 +7,7 @@ export interface ERAttributeData {
 	key: boolean;
 	partial: boolean;
 	multiValued: boolean;
+	derived: boolean;
 }
 
 export class DummyERAttribute extends Entity {
@@ -27,7 +28,7 @@ export class DummyERAttribute extends Entity {
 }
 
 export class ERAttribute extends Entity {
-	constructor(public label: string, public key: boolean, public partial: boolean, public multiValued: boolean) {
+	constructor(public label: string, public key: boolean, public partial: boolean, public multiValued: boolean, public derived: boolean) {
 		super();
 	}
 
@@ -54,13 +55,13 @@ export class ERAttribute extends Entity {
 			renderEngine.fillEllipse(this.position, xRadius, yRadius, 'rgba(200, 200, 255, 0.5)');
 		}
 
-		renderEngine.ellipse(this.position, xRadius, yRadius);
+		renderEngine.ellipse(this.position, xRadius, yRadius, { dashed: this.derived });
 
 		if (this.multiValued) {
 			renderEngine.ellipse(this.position, xRadius - 4, yRadius - 3);
 		}
 
-		renderEngine.text(this.position, this.label, { underline: this.key });
+		renderEngine.text(this.position, this.label, { underline: this.key, underlineDashed: this.partial });
 	}
 
 	public selectedBy(point: Point): boolean {

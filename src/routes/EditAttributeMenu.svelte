@@ -8,7 +8,8 @@
 	export let editingAttribute: ERAttribute, menuLocation: Point;
 	let key: boolean = editingAttribute.key,
 		partial: boolean = editingAttribute.partial,
-		multiValued: boolean = editingAttribute.multiValued;
+		multiValued: boolean = editingAttribute.multiValued,
+		derived: boolean = editingAttribute.derived;
 
 	const dispatch = createEventDispatcher<{ delete: ERAttribute }>();
 </script>
@@ -49,5 +50,14 @@
 		}}
 	>
 		Multi-Valued
+	</Menu.Item>
+	<Menu.Item
+		icon={multiValued ? Check : undefined}
+		on:click={() => {
+			editingAttribute.derived = !derived;
+			multiValued = !derived;
+		}}
+	>
+		Derived
 	</Menu.Item>
 </Menu>
