@@ -36,7 +36,10 @@ export class ERLabel extends Entity {
 
 	public render(renderEngine: RenderEngine, metadata: Metadata): void {
 		const labelMetrics = renderEngine.measure(this.label);
-		const height = labelMetrics.fontBoundingBoxAscent + labelMetrics.fontBoundingBoxDescent + 6,
+		const height =
+				(labelMetrics.fontBoundingBoxAscent ?? labelMetrics.actualBoundingBoxAscent) +
+				(labelMetrics.fontBoundingBoxDescent ?? labelMetrics.actualBoundingBoxDescent) +
+				6,
 			width = labelMetrics.actualBoundingBoxLeft + labelMetrics.actualBoundingBoxRight + 12;
 
 		if (metadata.selected) {
@@ -48,7 +51,10 @@ export class ERLabel extends Entity {
 
 	public selectedBy(point: Point, getMetrics: (label: string) => TextMetrics): boolean {
 		const labelMetrics = getMetrics(this.label);
-		const height = labelMetrics.fontBoundingBoxAscent + labelMetrics.fontBoundingBoxDescent + 6,
+		const height =
+				(labelMetrics.fontBoundingBoxAscent ?? labelMetrics.actualBoundingBoxAscent) +
+				(labelMetrics.fontBoundingBoxDescent ?? labelMetrics.actualBoundingBoxDescent) +
+				+6,
 			width = labelMetrics.actualBoundingBoxLeft + labelMetrics.actualBoundingBoxRight + 12;
 
 		return (

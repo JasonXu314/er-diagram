@@ -82,7 +82,11 @@ export class ERRelationship extends Entity {
 	public calculateDimensions(): { width: number; height: number } {
 		const labelMetrics = this.renderEngine.measure(this.label);
 		const width = labelMetrics.actualBoundingBoxLeft + labelMetrics.actualBoundingBoxRight + 50,
-			height = labelMetrics.fontBoundingBoxAscent + labelMetrics.fontBoundingBoxDescent + Math.sqrt(width) + 13;
+			height =
+				(labelMetrics.fontBoundingBoxAscent ?? labelMetrics.actualBoundingBoxAscent) +
+				(labelMetrics.fontBoundingBoxDescent ?? labelMetrics.actualBoundingBoxDescent) +
+				Math.sqrt(width) +
+				13;
 
 		return { width, height };
 	}

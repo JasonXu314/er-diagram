@@ -40,7 +40,11 @@ export class ERAttribute extends Entity {
 	public render(renderEngine: RenderEngine, metadata: Metadata): void {
 		const labelMetrics = renderEngine.measure(this.label);
 		const width = labelMetrics.actualBoundingBoxLeft + labelMetrics.actualBoundingBoxRight + 26,
-			height = labelMetrics.fontBoundingBoxAscent + labelMetrics.fontBoundingBoxDescent + Math.sqrt(width) + 13;
+			height =
+				(labelMetrics.fontBoundingBoxAscent ?? labelMetrics.actualBoundingBoxAscent) +
+				(labelMetrics.fontBoundingBoxDescent ?? labelMetrics.actualBoundingBoxDescent) +
+				Math.sqrt(width) +
+				13;
 		const yRadius = height / 2,
 			xRadius = width / 2;
 

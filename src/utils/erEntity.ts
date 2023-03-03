@@ -37,7 +37,10 @@ export class EREntity extends Entity {
 
 	public render(renderEngine: RenderEngine, metadata: Metadata): void {
 		const labelMetrics = renderEngine.measure(this.label);
-		const height = labelMetrics.fontBoundingBoxAscent + labelMetrics.fontBoundingBoxDescent + 13,
+		const height =
+				(labelMetrics.fontBoundingBoxAscent ?? labelMetrics.actualBoundingBoxAscent) +
+				(labelMetrics.fontBoundingBoxDescent ?? labelMetrics.actualBoundingBoxDescent) +
+				13,
 			width = labelMetrics.actualBoundingBoxLeft + labelMetrics.actualBoundingBoxRight + 26;
 
 		renderEngine.fillRect(this.position, width, height, 'white');
@@ -57,7 +60,10 @@ export class EREntity extends Entity {
 
 	public selectedBy(point: Point, getMetrics: (label: string) => TextMetrics): boolean {
 		const labelMetrics = getMetrics(this.label);
-		const height = labelMetrics.fontBoundingBoxAscent + labelMetrics.fontBoundingBoxDescent + 13,
+		const height =
+				(labelMetrics.fontBoundingBoxAscent ?? labelMetrics.actualBoundingBoxAscent) +
+				(labelMetrics.fontBoundingBoxDescent ?? labelMetrics.actualBoundingBoxDescent) +
+				13,
 			width = labelMetrics.actualBoundingBoxLeft + labelMetrics.actualBoundingBoxRight + 26;
 
 		return (
