@@ -2,8 +2,8 @@
 	import { Menu } from '@svelteuidev/core';
 	import { Check, Trash } from 'radix-icons-svelte';
 	import { createEventDispatcher } from 'svelte';
-	import type { ERLine } from '../utils/line';
-	import type { Point } from '../utils/point';
+	import type { ERLine } from '../../utils/line';
+	import type { Point } from '../../utils/point';
 
 	export let editingLine: ERLine, menuLocation: Point;
 	let double: boolean = editingLine.double;

@@ -6,13 +6,15 @@
 	import { Engine, MouseButton } from '../utils/engine';
 	import type { Entity } from '../utils/entity';
 	import { EREntity, type EREntityData } from '../utils/erEntity';
-	import type { ERLabelData } from '../utils/label';
+	import { ERLabel, type ERLabelData } from '../utils/label';
 	import { ERLine } from '../utils/line';
 	import { Point } from '../utils/point';
-	import type { ERRelationshipData } from '../utils/relationship';
-	import EditAttributeMenu from './EditAttributeMenu.svelte';
-	import EditEntityMenu from './EditEntityMenu.svelte';
-	import EditLineMenu from './EditLineMenu.svelte';
+	import { ERRelationship, type ERRelationshipData } from '../utils/relationship';
+	import EditAttributeMenu from './menus/EditAttributeMenu.svelte';
+	import EditEntityMenu from './menus/EditEntityMenu.svelte';
+	import EditLabelMenu from './menus/EditLabelMenu.svelte';
+	import EditLineMenu from './menus/EditLineMenu.svelte';
+	import EditRelationshipMenu from './menus/EditRelationshipMenu.svelte';
 	import CreateAttributeModal from './modals/CreateAttributeModal.svelte';
 	import CreateEntityModal from './modals/CreateEntityModal.svelte';
 	import CreateLabelModal from './modals/CreateLabelModal.svelte';
@@ -30,7 +32,9 @@
 		NONE,
 		EDITING_ENTITY,
 		EDITING_ATTRIBUTE,
-		EDITING_LINE
+		EDITING_LINE,
+		EDITING_LABEL,
+		EDITING_RELATIONSHIP
 	}
 
 	let canvas: HTMLCanvasElement | undefined,
@@ -42,6 +46,8 @@
 		editingEntity: EREntity | null = null,
 		editingAttribute: ERAttribute | null = null,
 		editingLine: ERLine | null = null,
+		editingLabel: ERLabel | null = null,
+		editingRelationship: ERRelationship | null = null,
 		entityResolver: (data: EREntityData) => void = () => {},
 		entityCanceler: () => void = () => {},
 		attributeResolver: (data: ERAttributeData) => void = () => {},
@@ -72,6 +78,14 @@
 						menuState = MenuState.EDITING_LINE;
 						editingLine = entity;
 						menuLocation = metadata.pagePos.add(new Point(5, 0));
+					} else if (entity instanceof ERRelationship) {
+						menuState = MenuState.EDITING_RELATIONSHIP;
+						editingRelationship = entity;
+						menuLocation = metadata.pagePos.add(new Point(-25, 12.5));
+					} else if (entity instanceof ERLabel) {
+						menuState = MenuState.EDITING_LABEL;
+						editingLabel = entity;
+						menuLocation = metadata.pagePos.add(new Point(-5, 12.5));
 					}
 				}
 			});
@@ -310,6 +324,40 @@
 
 			if (engine) {
 				engine.remove(line);
+			}
+		}}
+	/>
+{:else if menuState === MenuState.EDITING_LABEL && editingLabel && menuLocation}
+	<EditLabelMenu
+		{menuLocation}
+		{editingLabel}
+		on:close={() => {
+			menuState = MenuState.NONE;
+			editingLabel = null;
+			menuLocation = null;
+		}}
+		on:delete={(evt) => {
+			const label = evt.detail;
+
+			if (engine) {
+				engine.remove(label);
+			}
+		}}
+	/>
+{:else if menuState === MenuState.EDITING_RELATIONSHIP && editingRelationship && menuLocation}
+	<EditRelationshipMenu
+		{menuLocation}
+		{editingRelationship}
+		on:close={() => {
+			menuState = MenuState.NONE;
+			editingRelationship = null;
+			menuLocation = null;
+		}}
+		on:delete={(evt) => {
+			const relationship = evt.detail;
+
+			if (engine) {
+				engine.remove(relationship);
 			}
 		}}
 	/>

@@ -2,8 +2,8 @@
 	import { Menu } from '@svelteuidev/core';
 	import { Check, Trash } from 'radix-icons-svelte';
 	import { createEventDispatcher } from 'svelte';
-	import type { ERAttribute } from '../utils/attribute';
-	import type { Point } from '../utils/point';
+	import type { ERAttribute } from '../../utils/attribute';
+	import type { Point } from '../../utils/point';
 
 	export let editingAttribute: ERAttribute, menuLocation: Point;
 	let key: boolean = editingAttribute.key,
