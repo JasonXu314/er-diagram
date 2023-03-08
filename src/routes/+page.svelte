@@ -3,6 +3,7 @@
 	import { Button, Group, Tooltip } from '@svelteuidev/core';
 	import { onMount } from 'svelte';
 	import { ERAttribute, type ERAttributeData } from '../utils/attribute';
+	import { ERConstraint, type ERConstraintData } from '../utils/constraint';
 	import { Engine, MouseButton } from '../utils/engine';
 	import type { Entity } from '../utils/entity';
 	import { EREntity, type EREntityData } from '../utils/erEntity';
@@ -11,11 +12,13 @@
 	import { Point } from '../utils/point';
 	import { ERRelationship, type ERRelationshipData } from '../utils/relationship';
 	import EditAttributeMenu from './menus/EditAttributeMenu.svelte';
+	import EditConstraintMenu from './menus/EditConstraintMenu.svelte';
 	import EditEntityMenu from './menus/EditEntityMenu.svelte';
 	import EditLabelMenu from './menus/EditLabelMenu.svelte';
 	import EditLineMenu from './menus/EditLineMenu.svelte';
 	import EditRelationshipMenu from './menus/EditRelationshipMenu.svelte';
 	import CreateAttributeModal from './modals/CreateAttributeModal.svelte';
+	import CreateConstraintModal from './modals/CreateConstraintModal.svelte';
 	import CreateEntityModal from './modals/CreateEntityModal.svelte';
 	import CreateLabelModal from './modals/CreateLabelModal.svelte';
 	import CreateRelationshipModal from './modals/CreateRelationshipModal.svelte';
@@ -25,7 +28,8 @@
 		CREATE_ENTITY,
 		CREATE_ATTRIBUTE,
 		CREATE_RELATIONSHIP,
-		CREATE_LABEL
+		CREATE_LABEL,
+		CREATE_CONSTRAINT
 	}
 
 	enum MenuState {
@@ -34,7 +38,8 @@
 		EDITING_ATTRIBUTE,
 		EDITING_LINE,
 		EDITING_LABEL,
-		EDITING_RELATIONSHIP
+		EDITING_RELATIONSHIP,
+		EDITING_CONSTRAINT
 	}
 
 	let canvas: HTMLCanvasElement | undefined,
@@ -48,6 +53,7 @@
 		editingLine: ERLine | null = null,
 		editingLabel: ERLabel | null = null,
 		editingRelationship: ERRelationship | null = null,
+		editingConstraint: ERConstraint | null = null,
 		entityResolver: (data: EREntityData) => void = () => {},
 		entityCanceler: () => void = () => {},
 		attributeResolver: (data: ERAttributeData) => void = () => {},
@@ -56,6 +62,8 @@
 		relationshipCanceler: () => void = () => {},
 		labelResolver: (data: ERLabelData) => void = () => {},
 		labelCanceler: () => void = () => {},
+		constraintResolver: (data: ERConstraintData) => void = () => {},
+		constraintCanceler: () => void = () => {},
 		cancelLine: () => void = () => {};
 
 	onMount(() => {
@@ -86,6 +94,10 @@
 						menuState = MenuState.EDITING_LABEL;
 						editingLabel = entity;
 						menuLocation = metadata.pagePos.add(new Point(-5, 12.5));
+					} else if (entity instanceof ERConstraint) {
+						menuState = MenuState.EDITING_CONSTRAINT;
+						editingConstraint = entity;
+						menuLocation = metadata.pagePos.add(new Point(-5, 10));
 					}
 				}
 			});
@@ -139,6 +151,19 @@
 				return new Promise<ERLabelData>((resolve, reject) => {
 					labelResolver = resolve;
 					labelCanceler = reject;
+				});
+			});
+		}
+	}
+
+	function createConstraint() {
+		if (engine) {
+			engine.createConstraint(async () => {
+				modalState = ModalState.CREATE_CONSTRAINT;
+
+				return new Promise<ERConstraintData>((resolve, reject) => {
+					constraintResolver = resolve;
+					constraintCanceler = reject;
 				});
 			});
 		}
@@ -248,6 +273,24 @@
 		labelCanceler = () => {};
 		modalState = ModalState.NONE;
 	}
+
+	function submitConstraintData(evt: CustomEvent<ERConstraintData>): void {
+		const data = evt.detail;
+
+		constraintResolver(data);
+
+		constraintResolver = () => {};
+		constraintCanceler = () => {};
+		modalState = ModalState.NONE;
+	}
+
+	function cancelCreateConstraint(): void {
+		constraintCanceler();
+
+		constraintResolver = () => {};
+		constraintCanceler = () => {};
+		modalState = ModalState.NONE;
+	}
 </script>
 
 <Group>
@@ -270,12 +313,16 @@
 	<Tooltip label="Hotkey: t (Text)">
 		<Button use={[[hotkey, modalState === ModalState.NONE ? [['t', createLabel]] : []]]} on:click={createLabel}>Label</Button>
 	</Tooltip>
+	<Tooltip label="Hotkey: shift + c (Constraint)">
+		<Button use={[[hotkey, modalState === ModalState.NONE ? [['shift+c', createConstraint]] : []]]} on:click={createConstraint}>Constraint</Button>
+	</Tooltip>
 </Group>
 <canvas height={800} width={1200} bind:this={canvas} />
 <CreateEntityModal opened={modalState === ModalState.CREATE_ENTITY} on:submit={submitEntityData} on:cancel={cancelCreateEntity} />
 <CreateAttributeModal opened={modalState === ModalState.CREATE_ATTRIBUTE} on:submit={submitAttributeData} on:cancel={cancelCreateAttribute} />
 <CreateRelationshipModal opened={modalState === ModalState.CREATE_RELATIONSHIP} on:submit={submitRelationshipData} on:cancel={cancelCreateRelationship} />
 <CreateLabelModal opened={modalState === ModalState.CREATE_LABEL} on:submit={submitLabelData} on:cancel={cancelCreateLabel} />
+<CreateConstraintModal opened={modalState === ModalState.CREATE_CONSTRAINT} on:submit={submitConstraintData} on:cancel={cancelCreateConstraint} />
 {#if menuState === MenuState.EDITING_ENTITY && editingEntity && menuLocation}
 	<EditEntityMenu
 		{menuLocation}
@@ -358,6 +405,23 @@
 
 			if (engine) {
 				engine.remove(relationship);
+			}
+		}}
+	/>
+{:else if menuState === MenuState.EDITING_CONSTRAINT && editingConstraint && menuLocation}
+	<EditConstraintMenu
+		{menuLocation}
+		{editingConstraint}
+		on:close={() => {
+			menuState = MenuState.NONE;
+			editingConstraint = null;
+			menuLocation = null;
+		}}
+		on:delete={(evt) => {
+			const constraint = evt.detail;
+
+			if (engine) {
+				engine.remove(constraint);
 			}
 		}}
 	/>

@@ -87,6 +87,20 @@ export class RenderEngine {
 		this.context.fill();
 	}
 
+	public arc(start: Point, center: Point, radius: number, angle: number): void {
+		const [sx, sy] = this.spaceToCanvas(start);
+		const [cx, cy] = this.spaceToCanvas(center);
+		const delta = center.subtract(start);
+		const startAngle = Math.atan2(delta.x, delta.y) + Math.PI / 2;
+
+		this.context.beginPath();
+		this.context.moveTo(sx, sy);
+
+		this.context.arc(cx, cy, radius, startAngle, startAngle + angle);
+
+		this.context.stroke();
+	}
+
 	public text(center: Point, text: string, styles: Partial<TextStyles> = {}): void {
 		const [x, y] = this.norm.add(center.invert('y')).add(new Point(0, 4));
 
@@ -117,6 +131,28 @@ export class RenderEngine {
 			this.context.strokeStyle = 'black';
 			this.context.setLineDash([]);
 		}
+	}
+
+	public circle(center: Point, radius: number): void {
+		const [x, y] = this.spaceToCanvas(center);
+
+		this.context.strokeStyle = 'black';
+
+		this.context.beginPath();
+		this.context.arc(x, y, radius, 0, Math.PI * 2);
+		this.context.stroke();
+
+		this.context.strokeStyle = 'black';
+	}
+
+	public fillCircle(center: Point, radius: number, fillStyle: string | CanvasGradient | CanvasPattern): void {
+		const [x, y] = this.spaceToCanvas(center);
+
+		this.context.fillStyle = fillStyle;
+
+		this.context.beginPath();
+		this.context.arc(x, y, radius, 0, Math.PI * 2);
+		this.context.fill();
 	}
 
 	public ellipse(center: Point, xRadius: number, yRadius: number, styles: Partial<ShapeStyles> = {}): void {

@@ -1,4 +1,5 @@
 import { DummyERAttribute, ERAttribute, type ERAttributeData } from './attribute';
+import { DummyERConstraint, ERConstraint, type ERConstraintData } from './constraint';
 import type { Entity, MouseData } from './entity';
 import { DummyEREntity, EREntity, type EREntityData } from './erEntity';
 import { DummyERLabel, ERLabel, type ERLabelData } from './label';
@@ -249,6 +250,33 @@ export class Engine {
 			const data = await getData();
 
 			const entity = new ERLabel(data.label);
+			entity.position = pos.clone();
+
+			this.add(entity, 1);
+
+			return entity;
+		} catch (e: unknown) {
+			console.error(e);
+			return null;
+		}
+	}
+
+	public async createConstraint(getData: () => Promise<ERConstraintData>): Promise<ERConstraint | null> {
+		try {
+			const dummyEntity = new DummyERConstraint();
+
+			this.add(dummyEntity, 1);
+
+			const pos = await new Promise<Point>((resolve) => {
+				this.on('entityClicked', () => {
+					resolve(dummyEntity.position);
+				});
+			});
+			this.remove(dummyEntity, 1);
+
+			const data = await getData();
+
+			const entity = new ERConstraint(data.type);
 			entity.position = pos.clone();
 
 			this.add(entity, 1);

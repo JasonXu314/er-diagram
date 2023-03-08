@@ -9,7 +9,7 @@ export enum RecursionSide {
 }
 
 export class ERLine extends Entity {
-	constructor(public readonly from: Entity, public readonly to: Entity, public double = false, public recursionState: RecursionSide | null = null) {
+	constructor(public from: Entity, public to: Entity, public double = false, public derivation = false, public recursionState: RecursionSide | null = null) {
 		super();
 
 		this.position = from.position.add(to.position).divide(2);
@@ -39,6 +39,21 @@ export class ERLine extends Entity {
 			renderEngine.line(fromPos.add(perpendicular.invert()), toPos.add(perpendicular.invert()));
 		} else {
 			renderEngine.line(fromPos, toPos);
+		}
+
+		if (this.derivation) {
+			const delta = toPos.subtract(fromPos).scaleTo(1);
+			const perpendicular = new Point(-delta.y, delta.x).scaleTo(1);
+
+			const start = this.position.add(perpendicular.times(6)).subtract(delta.times(4));
+			const end = start.add(delta.times(8));
+			renderEngine.line(start, end);
+
+			const otherStart = this.position.subtract(perpendicular.times(6)).subtract(delta.times(4));
+			const otherEnd = otherStart.add(delta.times(8));
+			renderEngine.line(otherStart, otherEnd);
+
+			renderEngine.arc(end, end.add(otherEnd).divide(2), 6, Math.PI);
 		}
 	}
 
