@@ -8,6 +8,25 @@ export enum RecursionSide {
 	RIGHT
 }
 
+export interface ERLineData {
+	type: 'LINE';
+	from: Entity;
+	to: Entity;
+	double: boolean;
+	derivation: boolean;
+	recursionState: RecursionSide | null;
+}
+
+export interface DehydratedERLine {
+	id: number;
+	type: 'LINE';
+	from: number;
+	to: number;
+	double: boolean;
+	derivation: boolean;
+	recursionState: RecursionSide | null;
+}
+
 export class ERLine extends Entity {
 	constructor(public from: Entity, public to: Entity, public double = false, public derivation = false, public recursionState: RecursionSide | null = null) {
 		super();
@@ -82,6 +101,26 @@ export class ERLine extends Entity {
 			default:
 				return entity.position;
 		}
+	}
+
+	public serialize(id: number, getID: (entity: Entity) => number): DehydratedERLine {
+		return {
+			id,
+			type: 'LINE',
+			from: getID(this.from),
+			to: getID(this.to),
+			double: this.double,
+			derivation: this.derivation,
+			recursionState: this.recursionState
+		};
+	}
+
+	public static deserialize({ type, derivation, double, from, recursionState, to }: ERLineData): ERLine {
+		if (type !== 'LINE') {
+			throw new Error(`Attempting to deserialize ${type} as line`);
+		}
+
+		return new ERLine(from, to, double, derivation, recursionState);
 	}
 }
 

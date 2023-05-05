@@ -1,10 +1,16 @@
 import { Entity, type Metadata } from './entity';
-import type { Point } from './point';
+import { Point } from './point';
 import type { RenderEngine } from './renderEngine';
 
 export interface EREntityData {
 	label: string;
 	weak: boolean;
+}
+
+export interface DehydratedEREntity extends EREntityData {
+	id: number;
+	type: 'ENTITY';
+	position: [number, number];
 }
 
 export class DummyEREntity extends Entity {
@@ -21,6 +27,10 @@ export class DummyEREntity extends Entity {
 
 	public selectedBy(point: Point): boolean {
 		return point.x >= this.position.x - 25 && point.x <= this.position.x + 25 && point.y >= this.position.y - 12.5 && point.y <= this.position.y + 12.5;
+	}
+
+	public serialize(): never {
+		throw new Error('Attempting to serialize a placeholder entity');
 	}
 }
 
@@ -72,6 +82,28 @@ export class EREntity extends Entity {
 			point.y >= this.position.y - height / 2 &&
 			point.y <= this.position.y + height / 2
 		);
+	}
+
+	public serialize(id: number): DehydratedEREntity {
+		return {
+			id,
+			type: 'ENTITY',
+			position: [this.position.x, this.position.y],
+			label: this.label,
+			weak: this.weak
+		};
+	}
+
+	public static deserialize({ type, label, position, weak }: DehydratedEREntity): EREntity {
+		if (type !== 'ENTITY') {
+			throw new Error(`Attempting to deserialize ${type} as entity`);
+		}
+
+		const entity = new EREntity(label, weak);
+		const [x, y] = position;
+		entity.position = new Point(x, y);
+
+		return entity;
 	}
 }
 

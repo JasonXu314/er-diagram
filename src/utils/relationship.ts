@@ -7,6 +7,12 @@ export interface ERRelationshipData {
 	identifying: boolean;
 }
 
+export interface DehydratedERRelationship extends ERRelationshipData {
+	id: number;
+	type: 'RELATIONSHIP';
+	position: [number, number];
+}
+
 export class DummyERRelationship extends Entity {
 	public update(metadata: Metadata): void {
 		if (metadata.mouse?.position) {
@@ -23,6 +29,10 @@ export class DummyERRelationship extends Entity {
 
 	public selectedBy(point: Point): boolean {
 		return (this.position.x - point.x) ** 2 / 25 ** 2 + (this.position.y - point.y) ** 2 / 12.5 ** 2 <= 1;
+	}
+
+	public serialize(): never {
+		throw new Error('Attempting to serialize a placeholder relationship');
 	}
 }
 
@@ -87,6 +97,28 @@ export class ERRelationship extends Entity {
 				13;
 
 		return { width, height };
+	}
+
+	public serialize(id: number): DehydratedERRelationship {
+		return {
+			id,
+			type: 'RELATIONSHIP',
+			position: [this.position.x, this.position.y],
+			label: this.label,
+			identifying: this.identifying
+		};
+	}
+
+	public static deserialize({ type, identifying, label, position }: DehydratedERRelationship, getRenderEngine: () => RenderEngine): ERRelationship {
+		if (type !== 'RELATIONSHIP') {
+			throw new Error(`Attempting to deserialize ${type} as relationship`);
+		}
+
+		const relationship = new ERRelationship(label, identifying, getRenderEngine());
+		const [x, y] = position;
+		relationship.position = new Point(x, y);
+
+		return relationship;
 	}
 }
 

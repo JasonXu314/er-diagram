@@ -9,4 +9,11 @@ declare global {
 	}
 }
 
-export {};
+export interface ERDiagram {
+	_id: string;
+	author: string;
+	name: string;
+	diagram: string;
+	preview: string;
+}
+

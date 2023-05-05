@@ -1,11 +1,11 @@
-import { DummyERAttribute, ERAttribute, type ERAttributeData } from './attribute';
+import { DummyERAttribute, ERAttribute, type DehydratedERAttribute, type ERAttributeData } from './attribute';
 import { DummyERConstraint, ERConstraint, type ERConstraintData } from './constraint';
 import type { Entity, MouseData } from './entity';
-import { DummyEREntity, EREntity, type EREntityData } from './erEntity';
-import { DummyERLabel, ERLabel, type ERLabelData } from './label';
-import { ERLine, RecursionSide } from './line';
+import { DummyEREntity, EREntity, type DehydratedEREntity, type EREntityData } from './erEntity';
+import { DummyERLabel, ERLabel, type DehydratedERLabel, type ERLabelData } from './label';
+import { ERLine, RecursionSide, type DehydratedERLine } from './line';
 import { Point } from './point';
-import { DummyERRelationship, ERRelationship, type ERRelationshipData } from './relationship';
+import { DummyERRelationship, ERRelationship, type DehydratedERRelationship, type ERRelationshipData } from './relationship';
 import { RenderEngine } from './renderEngine';
 
 interface EngineEvents {
@@ -80,7 +80,7 @@ export class Engine {
 						listener(this._selectedEntity, {
 							button: evt.button,
 							spacePos: this._mousePos!,
-							pagePos: this.renderEngine.spaceToCanvas(this._mousePos!).add(new Point(0, 36))
+							pagePos: this.renderEngine.spaceToCanvas(this._mousePos!).add(new Point(16, 52))
 						});
 					}
 				} else {
@@ -286,6 +286,69 @@ export class Engine {
 			console.error(e);
 			return null;
 		}
+	}
+
+	public export(): string {
+		const entityToIndex: Map<Entity, number> = new Map();
+		const entities: Entity[] = [];
+		let idx = 0;
+
+		const reversedLayers = this.layers.reduce<Entity[][]>((arr, layer) => [layer, ...arr], []);
+		for (const layer of reversedLayers) {
+			const reversedEntities = layer.reduce<Entity[]>((arr, entity) => [entity, ...arr], []);
+
+			for (const entity of reversedEntities) {
+				entities.push(entity);
+				entityToIndex.set(entity, idx);
+				idx++;
+			}
+		}
+
+		return JSON.stringify(entities.map((entity) => entity.serialize(entityToIndex.get(entity)!, (entity) => entityToIndex.get(entity)!)));
+	}
+
+	public load(dehydratedEntities: { type: string }[]): void {
+		const entities: Entity[] = [];
+
+		dehydratedEntities.forEach((dehydratedEntity) => {
+			switch (dehydratedEntity.type) {
+				case 'ENTITY': {
+					const data = dehydratedEntity as DehydratedEREntity;
+					const entity = EREntity.deserialize(data);
+					entities[data.id] = entity;
+					this.add(entity, 1);
+					break;
+				}
+				case 'ATTRIBUTE': {
+					const data = dehydratedEntity as DehydratedERAttribute;
+					const entity = ERAttribute.deserialize(data);
+					entities[data.id] = entity;
+					this.add(entity, 1);
+					break;
+				}
+				case 'LABEL': {
+					const data = dehydratedEntity as DehydratedERLabel;
+					const entity = ERLabel.deserialize(data);
+					entities[data.id] = entity;
+					this.add(entity, 1);
+					break;
+				}
+				case 'RELATIONSHIP': {
+					const data = dehydratedEntity as DehydratedERRelationship;
+					const entity = ERRelationship.deserialize(data, () => this.renderEngine);
+					entities[data.id] = entity;
+					this.add(entity, 1);
+					break;
+				}
+				case 'LINE': {
+					const { derivation, double, from, id, recursionState, to, type } = dehydratedEntity as DehydratedERLine;
+					const entity = ERLine.deserialize({ derivation, double, from: entities[from], recursionState, to: entities[to], type });
+					entities[id] = entity;
+					this.add(entity, 0);
+					break;
+				}
+			}
+		});
 	}
 
 	private _tick(): void {

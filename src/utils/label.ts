@@ -1,9 +1,15 @@
 import { Entity, type Metadata } from './entity';
-import type { Point } from './point';
+import { Point } from './point';
 import type { RenderEngine } from './renderEngine';
 
 export interface ERLabelData {
 	label: string;
+}
+
+export interface DehydratedERLabel extends ERLabelData {
+	id: number;
+	type: 'LABEL';
+	position: [number, number];
 }
 
 export class DummyERLabel extends Entity {
@@ -20,6 +26,10 @@ export class DummyERLabel extends Entity {
 
 	public selectedBy(point: Point): boolean {
 		return point.x >= this.position.x - 25 && point.x <= this.position.x + 25 && point.y >= this.position.y - 12.5 && point.y <= this.position.y + 12.5;
+	}
+
+	public serialize(): never {
+		throw new Error('Attempting to serialize a placeholder label');
 	}
 }
 
@@ -63,6 +73,27 @@ export class ERLabel extends Entity {
 			point.y >= this.position.y - height / 2 &&
 			point.y <= this.position.y + height / 2
 		);
+	}
+
+	public serialize(id: number): DehydratedERLabel {
+		return {
+			id,
+			type: 'LABEL',
+			position: [this.position.x, this.position.y],
+			label: this.label
+		};
+	}
+
+	public static deserialize({ type, label, position }: DehydratedERLabel): ERLabel {
+		if (type !== 'LABEL') {
+			throw new Error(`Attempting to deserialize ${type} as label`);
+		}
+
+		const l = new ERLabel(label);
+		const [x, y] = position;
+		l.position = new Point(x, y);
+
+		return l;
 	}
 }
 
