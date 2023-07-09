@@ -463,7 +463,7 @@
 		{editingLine}
 		on:close={() => {
 			menuState = MenuState.NONE;
-			editingAttribute = null;
+			editingLine = null;
 			menuLocation = null;
 		}}
 		on:delete={(evt) => {
