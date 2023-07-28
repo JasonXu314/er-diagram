@@ -4,10 +4,12 @@
 	import type { ERDiagram } from '../../app';
 	import DiagramMaker from '../../components/DiagramMaker.svelte';
 	import { BACKEND_URL } from '../../utils/env';
+	import type { PageData } from './$types';
 
-	export let id: string;
+	export let data: PageData;
 
-	let dehydratedDiagram: ERDiagram | null = null;
+	let dehydratedDiagram: ERDiagram | null = null,
+		id = data.id;
 
 	onMount(() => {
 		axios
