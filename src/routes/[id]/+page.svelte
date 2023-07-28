@@ -1,13 +1,13 @@
 <script lang="ts">
-	import { page } from '$app/stores';
 	import axios from 'axios';
 	import { onMount } from 'svelte';
 	import type { ERDiagram } from '../../app';
 	import DiagramMaker from '../../components/DiagramMaker.svelte';
 	import { BACKEND_URL } from '../../utils/env';
 
-	let dehydratedDiagram: ERDiagram | null = null,
-		id = $page.params.id;
+	export let id: string;
+
+	let dehydratedDiagram: ERDiagram | null = null;
 
 	onMount(() => {
 		axios

@@ -31,7 +31,7 @@
 					<Title>{diagram.name}</Title>
 					<Title order={3}>{diagram.author}</Title>
 				</Group>
-				<Button variant="light" href={`/${diagram._id}`} target="_blank" rel="noreferrer noopener">Visit</Button>
+				<Button variant="light" href={`${diagram._id}`} target="_blank" rel="noreferrer noopener">Visit</Button>
 			</Stack>
 		</Card>
 	{/each}
